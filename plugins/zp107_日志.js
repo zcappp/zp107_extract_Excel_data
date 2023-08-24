@@ -7,6 +7,7 @@ function init(ref) {
     rd = ref.render
     exc('$api.getLogs()', {}, arr => {
         list = arr.map(a => parseInt(a)).sort().reverse()
+        rd()
     })
 }
 
@@ -41,8 +42,6 @@ const css = `
   margin: 0px 0px 0px 9px;
   float: left;
   overflow-y: auto;
-  max-height: calc(100vh - 100px);
-  display: block;
 }
 
 .zp107 tbody tr {
@@ -56,7 +55,7 @@ const css = `
 .zp107 .detail {
   margin: 0px 0px 0px 9px;
   float: left;
-  width: calc(100vw - 710px);
+  width: calc(100vw - 224px);
   padding: 9px;
   border: 1px solid rgb(221, 221, 221);
 }
