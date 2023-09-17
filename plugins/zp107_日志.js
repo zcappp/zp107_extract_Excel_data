@@ -1,6 +1,7 @@
 import React from "react"
 
-let list = [], exc, rd, cur, log
+let list = [],
+    exc, rd, cur, y, log
 
 function init(ref) {
     exc = ref.exc
@@ -16,16 +17,18 @@ function render() {
         <h3>服务端日志</h3>
         <table className="ztable">
             <tbody>{list.map(d => 
-                <tr onClick={() => getLog(d)} className={cur === d ? "cur" : ""} key={d}>
+                <tr onClick={e => getLog(e, d)} className={cur === d ? "cur" : ""} key={d}>
                     <td>{new Date(d).format("yyyy-MM-dd HH:mm:ss")}</td>
                 </tr>)}
             </tbody>
         </table>
-        {!!log && <div className="detail"><pre>{log}</pre></div>}
+        {!!log && <div className="detail" style={{top: y + "px"}}><pre>{log}</pre></div>}
     </React.Fragment>
 }
 
-function getLog(d) {
+function getLog(e, d) {
+    cur = d
+    y = e.currentTarget.getBoundingClientRect().y
     exc(`$api.getLog("${d}")`, null, o => {
         log = o ? JSON.stringify(o, null, "  ") : "N/A"
         rd()
@@ -53,9 +56,8 @@ const css = `
 }
 
 .zp107 .detail {
-  margin: 0px 0px 0px 9px;
-  float: left;
-  width: calc(100vw - 224px);
+  position: absolute;
+  overflow: auto;
   padding: 9px;
   border: 1px solid rgb(221, 221, 221);
 }
