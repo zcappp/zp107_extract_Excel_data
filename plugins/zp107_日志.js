@@ -28,7 +28,7 @@ function render() {
 
 function getLog(e, d) {
     cur = d
-    y = e.currentTarget.getBoundingClientRect().y
+    y = e.currentTarget.getBoundingClientRect().y + window.pageYOffset
     exc(`$api.getLog("${d}")`, null, o => {
         log = o ? JSON.stringify(o, null, "  ") : "N/A"
         rd()
@@ -43,7 +43,6 @@ const css = `
   max-width: 600px;
   width: auto;
   margin: 0px 0px 0px 9px;
-  float: left;
   overflow-y: auto;
 }
 
@@ -57,6 +56,7 @@ const css = `
 
 .zp107 .detail {
   position: absolute;
+  left: 190px;
   overflow: auto;
   padding: 9px;
   border: 1px solid rgb(221, 221, 221);
