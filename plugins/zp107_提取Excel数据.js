@@ -7,12 +7,8 @@ function init(ref) {
     ref.container.appendChild(x)
 }
 
-function render(ref) {
-    return <input onChange={e => onChange(ref, e)} type="file" accept=".xls,.xlsx"/>
-}
-
 function onChange(ref, e) {
-    const { exc } = ref
+    const { exc, props } = ref
     const file = e.target.files[0]
     if (!file || !file.name) return exc('warn("请选择Excel文件")')
     const reader = new FileReader();
@@ -21,8 +17,21 @@ function onChange(ref, e) {
         const workbook = XLSX.read(e.target.result)
         // const worksheet = workbook.Sheets[workbook.SheetNames[0]]
         // const raw_data = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-        const $x = ref.container.$x = workbook.SheetNames.map(name => XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 }))
-        if (ref.props.onSuccess) exc(ref.props.onSuccess, { ...ref.ctx, $x }, () => exc("render()"))
+        let $x = workbook.SheetNames.map(name => XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 }))
+        if (props.json) $x.forEach((sheet, s) => {
+            const keys = sheet.shift()
+            let arr = []
+            sheet.forEach((row, r) => {
+                row.forEach((col, c) => {
+                    let k = keys[c]
+                    if (!arr[r]) arr[r] = {}
+                    arr[r][k] = col
+                })
+            })
+            $x[s] = arr
+        })
+        ref.container.$x = $x
+        if (props.onSuccess) exc(props.onSuccess, { ...ref.ctx, $x }, () => exc("render()"))
         exc('$v.zp107 = $x', { $x })
     }
     reader.readAsArrayBuffer(file)
@@ -31,6 +40,10 @@ function onChange(ref, e) {
 $plugin({
     id: "zp107",
     props: [{
+        prop: "json",
+        type: "switch",
+        label: "把首行当作表头转换成对象数组"
+    }, {
         prop: "onSuccess",
         type: "exp",
         label: "onSuccess表达式"
