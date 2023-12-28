@@ -1,71 +1,39 @@
-import React from "react"
-
-let list = [],
-    exc, rd, cur, y, log
-
 function init(ref) {
-    exc = ref.exc
-    rd = ref.render
-    exc('$api.getLogs()', {}, arr => {
-        list = arr.map(a => parseInt(a)).sort().reverse()
-        rd()
-    })
+    ref.exc('load("https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js")', {}, () => ref.ready = true)
+    const x = document.createElement("input")
+    x.addEventListener("change", e => onChange(ref, e))
+    x.type = "file"
+    x.accept = ".xls,.xlsx"
+    ref.container.appendChild(x)
 }
 
-function render() {
-    return <React.Fragment>
-        <h3>服务端日志</h3>
-        <table className="ztable">
-            <tbody>{list.map(d => 
-                <tr onClick={e => getLog(e, d)} className={cur === d ? "cur" : ""} key={d}>
-                    <td>{new Date(d).format("yyyy-MM-dd HH:mm:ss")}</td>
-                </tr>)}
-            </tbody>
-        </table>
-        {!!log && <div className="detail" style={{top: y + "px"}}><pre>{log}</pre></div>}
-    </React.Fragment>
+function render(ref) {
+    return <input onChange={e => onChange(ref, e)} type="file" accept=".xls,.xlsx"/>
 }
 
-function getLog(e, d) {
-    cur = d
-    y = e.currentTarget.getBoundingClientRect().y + window.pageYOffset
-    exc(`$api.getLog("${d}")`, null, o => {
-        log = o ? JSON.stringify(o, null, "  ") : "N/A"
-        rd()
-    })
+function onChange(ref, e) {
+    const { exc } = ref
+    const file = e.target.files[0]
+    if (!file || !file.name) return exc('warn("请选择Excel文件")')
+    const reader = new FileReader();
+    reader.onload = e => {
+        if (!ref.ready) return exc('warn("请稍等")')
+        const workbook = XLSX.read(e.target.result)
+        // const worksheet = workbook.Sheets[workbook.SheetNames[0]]
+        // const raw_data = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+        const $x = ref.container.$x = workbook.SheetNames.map(name => XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 }))
+        if (ref.props.onSuccess) exc(ref.props.onSuccess, { ...ref.ctx, $x }, () => exc("render()"))
+        exc('$v.zp107 = $x', { $x })
+    }
+    reader.readAsArrayBuffer(file)
 }
-
-const css = `
-.zp107 h3{
-    margin-left: 9px;
-}
-.zp107 table {
-  max-width: 600px;
-  width: auto;
-  margin: 0px 0px 0px 9px;
-  overflow-y: auto;
-}
-
-.zp107 tbody tr {
-  cursor: pointer;
-}
-
-.zp107 tr.cur {
-  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(219, 219, 219)), to(rgb(210, 210, 210))) !important;
-}
-
-.zp107 .detail {
-  position: absolute;
-  left: 190px;
-  overflow: auto;
-  padding: 9px;
-  border: 1px solid rgb(221, 221, 221);
-}
-`
 
 $plugin({
     id: "zp107",
-    render,
-    init,
-    css
+    props: [{
+        prop: "onSuccess",
+        type: "exp",
+        label: "onSuccess表达式"
+    }],
+    init
 })
