@@ -24,15 +24,16 @@ function onChange(ref, e) {
             sheet.forEach((row, r) => {
                 row.forEach((col, c) => {
                     let k = keys[c]
-                    if (!arr[r]) arr[r] = {}
-                    arr[r][k] = col
+                    if (k) {
+                        if (!arr[r]) arr[r] = {}
+                        arr[r][k] = col
+                    }
                 })
             })
             $x[s] = arr
         })
-        ref.container.$x = $x
         if (props.onSuccess) exc(props.onSuccess, { ...ref.ctx, $x }, () => exc("render()"))
-        exc('$v.zp107 = $x', { $x })
+        exc('$v.zp107 = $x', { $x }, () => exc("render()"))
     }
     reader.readAsArrayBuffer(file)
 }
