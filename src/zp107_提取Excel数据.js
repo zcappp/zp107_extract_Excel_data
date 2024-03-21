@@ -19,15 +19,13 @@ function onChange(ref, e) {
         // const raw_data = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
         let $x = workbook.SheetNames.map(name => XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 }))
         if (props.json) $x.forEach((sheet, s) => {
-            const keys = sheet.shift()
+            const header = sheet.shift()
             let arr = []
             sheet.forEach((row, r) => {
+                arr[r] = {}
                 row.forEach((col, c) => {
-                    let k = keys[c]
-                    if (k) {
-                        if (!arr[r]) arr[r] = {}
-                        arr[r][k] = col
-                    }
+                    let h = header[c]
+                    if (h && col != Bln && col != undefined) arr[r][h] = col
                 })
             })
             $x[s] = arr
