@@ -1,10 +1,13 @@
 function init(ref) {
     ref.exc('load("https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js")', {}, () => ref.ready = true)
-    const x = document.createElement("input")
+    let x = document.createElement("input")
     x.addEventListener("change", e => onChange(ref, e))
     x.type = "file"
     x.accept = ".xls,.xlsx"
     ref.container.appendChild(x)
+    ref.children.forEach(c => {
+        ref.container.append(c)
+    })
 }
 
 function onChange(ref, e) {
@@ -17,21 +20,22 @@ function onChange(ref, e) {
         const workbook = XLSX.read(e.target.result)
         // const worksheet = workbook.Sheets[workbook.SheetNames[0]]
         // const raw_data = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-        let $x = workbook.SheetNames.map(name => XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 }))
-        if (props.json) $x.forEach((sheet, s) => {
-            const header = sheet.shift()
+        let $val = workbook.SheetNames.map(name => XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 }))
+        if (props.json) $val.forEach((sheet, s) => {
+            let header
+            Array(parseInt(props.head) || 1).fill(1).forEach(() => header = sheet.shift())
             let arr = []
             sheet.forEach((row, r) => {
                 arr[r] = {}
                 row.forEach((col, c) => {
                     let h = header[c]
-                    if (h && col != Bln && col != undefined) arr[r][h] = col
+                    if (h && col != "" && col != undefined) arr[r][h] = col
                 })
             })
-            $x[s] = arr
+            $val[s] = arr
         })
-        if (props.onSuccess) exc(props.onSuccess, { ...ref.ctx, $x }, () => exc("render()"))
-        exc('$v.zp107 = $x', { $x }, () => exc("render()"))
+        if (props.onSuccess) exc(props.onSuccess, { ...ref.ctx, $val }, () => exc("render()"))
+        exc('$v.zp107 = $val', { $val }, () => exc("render()"))
     }
     reader.readAsArrayBuffer(file)
 }
@@ -41,11 +45,16 @@ $plugin({
     props: [{
         prop: "json",
         type: "switch",
-        label: "把首行当作表头转换成对象数组"
+        label: "转换成对象数组"
+    }, {
+        prop: "head",
+        label: "表头",
+        ph: "默认第一行是表头"
     }, {
         prop: "onSuccess",
         type: "exp",
-        label: "onSuccess表达式"
+        label: "onSuccess表达式",
+        ph: "$val"
     }],
     init
 })
