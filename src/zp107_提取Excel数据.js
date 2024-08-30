@@ -1,3 +1,5 @@
+// TO BE REMOVED
+
 function init(ref) {
     ref.exc('load("https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js")', {}, () => ref.ready = true)
     let x = document.createElement("input")
@@ -13,10 +15,10 @@ function init(ref) {
 function onChange(ref, e) {
     const { exc, props } = ref
     const file = e.target.files[0]
-    if (!file || !file.name) return exc('warn("请选择Excel文件")')
+    if (!file || !file.name) return ref.isDev ? exc('warn("请选择Excel文件")') : ""
     const reader = new FileReader();
     reader.onload = e => {
-        if (!ref.ready) return exc('warn("请稍等")')
+        if (!ref.ready) return ref.isDev ? exc('warn("请稍等")') : ""
         const workbook = XLSX.read(e.target.result)
         // const worksheet = workbook.Sheets[workbook.SheetNames[0]]
         // const raw_data = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
